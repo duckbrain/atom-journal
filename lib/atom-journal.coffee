@@ -9,6 +9,7 @@ module.exports = AtomJournal =
   activate: (state) ->
     @atomJournalView = new AtomJournalView(state.atomJournalViewState)
     @atomJournalView.setDate(new Date())
+    @atomJournalView.setOnDateChange(@onDateChange)
     @modalPanel = atom.workspace.addTopPanel(item: @atomJournalView.getElement(), visible: false)
 
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
@@ -24,6 +25,9 @@ module.exports = AtomJournal =
 
   serialize: ->
     atomJournalViewState: @atomJournalView.serialize()
+
+  onDateChange: =>
+
 
   toggle: ->
     console.log 'AtomJournal was toggled!'
