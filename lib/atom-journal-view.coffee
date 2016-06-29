@@ -11,17 +11,29 @@ class AtomJournalView
     dows = ['S', 'M', 'T', 'W', 'R', 'F', 'S']
 
     # Create calendar element
+    calendarCol = document.createElement('div')
+    controls = document.createElement('div')
+    @monthDisplay = document.createElement('span')
+    previousMonth = document.createElement('a')
+    nextMonth = document.createElement('a')
     calendar = document.createElement('div')
-    calendar.classList.add('atom-journal-calendar')
     dowsRow = document.createElement('div')
+
+    calendarCol.classList.add('atom-journal-calendar-container')
+    calendar.classList.add('atom-journal-calendar')
     dowsRow.classList.add('atom-journal-calendar-row')
     dowsRow.classList.add('atom-journal-calendar-header')
+    controls.classList.add('atom-journal-calendar-controls')
 
-    calendarCol = document.createElement('div')
-    @monthDisplay = document.createElement('span')
-    controls = document.createElement('div')
+    previousMonth.textContent = '<'
+    nextMonth.textContent = '>'
 
+    previousMonth.addEventListener('click', @onPreviousMonthClick)
+    nextMonth.addEventListener('click', @onNextMonthClick)
+
+    controls.appendChild(previousMonth)
     controls.appendChild(@monthDisplay)
+    controls.appendChild(nextMonth)
     calendarCol.appendChild(controls)
     calendarCol.appendChild(calendar)
 
@@ -50,6 +62,16 @@ class AtomJournalView
     day = moment(e.target.dataset.date)
     @setDate(day)
 
+  onNextMonthClick: (e)=>
+    c = moment(@month)
+    c.add(1, 'month')
+    @setMonth(c.month(),  c.year())
+
+  onPreviousMonthClick: (e)=>
+    c = moment(@month)
+    c.add(-1, 'month')
+    @setMonth(c.month(),  c.year())
+
   # Returns an object that can be retrieved when package is activated
   serialize: ->
 
@@ -61,7 +83,7 @@ class AtomJournalView
     @element
 
   getDate: ->
-    @date
+    moment(@date)
 
   setDate: (date) ->
     if @date
@@ -80,13 +102,19 @@ class AtomJournalView
     index = date.diff(c, 'days')
     @days[index].classList.add('atom-journal-calendar-day-today')
 
+  getMonth: ->
+    @month
+
   setMonth: (month, year) ->
     c = moment([year, month])
+    @month = c
     @monthDisplay.textContent = c.format('MMMM YYYY')
     c.day(0)
 
     for i in [0..41]
-      @days[i].textContent = c.format('D')
-      @days[i].dataset.date = c
-      @days[i].classList.toggle('atom-journal-calendar-day-different-month', c.month() != month)
+      date = @days[i]
+      date.textContent = c.format('D')
+      date.dataset.date = c
+      date.classList.toggle('atom-journal-calendar-day-different-month', c.month() != month)
+      date.classList.remove('atom-journal-calendar-day-today')
       c.add(1, 'day')

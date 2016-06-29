@@ -8,9 +8,13 @@
 
 }
 
+.atom-journal-calendar-container {
+  float: left;
+  margin-left: 10px;
+}
+
 .atom-journal-calendar {
   display: table;
-  margin-left: 10px;
 }
 
 .atom-journal-calendar-row {
@@ -23,7 +27,7 @@
   text-align: center;
   vertical-align: middle;
   font-weight: bold;
-  min-width: 20px;
+  min-width: 1.6em;
 }
 
 .atom-journal-calendar-day {
@@ -38,6 +42,11 @@
 }
 
 .atom-journal-calendar-day-today {
-  background-color: white;
-  color: black;
+  background-color: @background-color-selected;
+  color: @text-color-selected;
+}
+
+.atom-journal-calendar-controls {
+  display: flex;
+  justify-content: space-between;
 }
