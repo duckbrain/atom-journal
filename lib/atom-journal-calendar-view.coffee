@@ -58,6 +58,11 @@ class AtomJournalView
 
     @element.appendChild(calendarCol)
 
+    if serializedState
+      @setDate(moment(serializedState.date))
+      month = moment(serializedState.month)
+      @setMonth(month.year(), month.month())
+
   onDateClick: (e)=>
     date = moment(e.target.dataset.date)
     @setDate(date)
@@ -74,6 +79,8 @@ class AtomJournalView
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
+    return date: @getDate()
+           month: @getMonth()
 
   # Tear down any state and detach
   destroy: ->

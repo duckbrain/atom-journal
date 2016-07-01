@@ -2,7 +2,7 @@
   "name": "atom-journal",
   "main": "./lib/atom-journal",
   "version": "0.0.0",
-  "description": "A short description of your package",
+  "description": "Open markdown files for notes and journal entries",
   "keywords": [],
   "activationCommands": {
     "atom-workspace": "atom-journal:toggle"
