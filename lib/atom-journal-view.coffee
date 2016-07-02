@@ -23,6 +23,9 @@ class AtomJournalView
     toolbar.appendChild todayButton
     @base.appendChild @notebookList
 
+  onNotebookClick: (e)->
+    @setNotebook(e.target.dataset.notebook)
+
   # Returns an object that can be retrieved when package is activated
   serialize: ->
     return calendar: @calendar.serialize()
@@ -42,10 +45,13 @@ class AtomJournalView
 
   setNotebooks: (notebooks)->
     @notebookList.innerHTML = ''
-    for name, book of notebooks
+    for name, notebook of notebooks
       el = document.createElement 'button'
       el.classList.add 'btn'
       el.textContent = name
+      el.dataset.notebook = name
+      notebook.element = el
+      el.addEventListener 'click', (e)=>@onNotebookClick e
       @notebookList.appendChild el
     @notebooks = notebooks
 
@@ -53,6 +59,11 @@ class AtomJournalView
     @notebook
 
   setNotebook: (notebook)->
+    notebook = @notebooks[notebook] if typeof notebook != 'object'
+    @notebook.element.classList.remove 'selected' if @notebook
+    notebook.element.classList.add 'selected'
+    @notebook = notebook
+    @onNotebookChange(notebook) if @onNotebookChange
 
   setOnNotebookChange: (cb)->
     @onNotebookChange = cb
