@@ -2,16 +2,26 @@ AtomJournalCalendarView = require './atom-journal-calendar-view'
 
 module.exports =
 class AtomJournalView
-  constructor: (serializedState) ->
-    @calendar = new AtomJournalCalendarView(serializedState && serializedState.calendar || null)
+  constructor: (state) ->
+    calendarState = state && state.calendar || null
+    @calendar = new AtomJournalCalendarView calendarState
 
-    @base = document.createElement('div')
-    @notebookEl = document.createElement('div')
+    @base = document.createElement 'div'
+    toolbar = document.createElement 'div'
+    @notebookList = document.createElement 'div'
+    todayButton = document.createElement 'button'
 
-    @notebookEl.classList.add('padded', 'btn-group')
+    @notebookList.classList.add 'padded', 'btn-group'
+    toolbar.classList.add 'padded', 'btn-group'
+    todayButton.classList.add 'btn'
+    todayButton.textContent = 'Today'
 
-    @base.appendChild(@calendar.getElement())
-    @base.appendChild(@notebookEl)
+    todayButton.addEventListener 'click', ()=>@setDate new Date
+
+    @base.appendChild @calendar.getElement()
+    @base.appendChild toolbar
+    toolbar.appendChild todayButton
+    @base.appendChild @notebookList
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
@@ -28,15 +38,15 @@ class AtomJournalView
     @calendar.getDate()
 
   setDate: (date) ->
-    @calendar.setDate(date)
+    @calendar.setDate date
 
   setNotebooks: (notebooks)->
-    @notebookEl.innerHTML = ''
+    @notebookList.innerHTML = ''
     for name, book of notebooks
-      el = document.createElement('button')
-      el.classList.add('btn')
+      el = document.createElement 'button'
+      el.classList.add 'btn'
       el.textContent = name
-      @notebookEl.appendChild(el)
+      @notebookList.appendChild el
     @notebooks = notebooks
 
   getNotebook: ->
@@ -47,4 +57,4 @@ class AtomJournalView
   setOnNotebookChange: (cb)->
     @onNotebookChange = cb
   setOnDateChange: (cb) ->
-    @calendar.setOnDateChange(cb)
+    @calendar.setOnDateChange cb

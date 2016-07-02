@@ -7,20 +7,24 @@ module.exports = AtomJournal =
   subscriptions: null
 
   activate: (state) ->
-    @atomJournalView = new AtomJournalView(state.atomJournalViewState)
-    @atomJournalView.setDate(new Date())
-    @atomJournalView.setOnDateChange(@onDateChange)
-    atom.config.observe("journal.notebooks", (notebooks)=>
+    @atomJournalView = new AtomJournalView state.viewState
+    @atomJournalView.setDate new Date
+    @atomJournalView.setOnDateChange (date)=> @openEntry date, {}
+    atom.config.observe "journal.notebooks", (notebooks)=>
       if !notebooks
-        throw Error("You must configure your notebooks in atom.cson")
-      @atomJournalView.setNotebooks(notebooks))
-    @modalPanel = atom.workspace.addTopPanel(item: @atomJournalView.getElement(), visible: false)
+        throw new Error "You must configure your notebooks in atom.cson"
+      @atomJournalView.setNotebooks notebooks
+    @modalPanel = atom.workspace.addTopPanel(
+      item: @atomJournalView.getElement()
+      visible: false
+    )
 
-    # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
+    # Events subscribed to in atom's system can be easily cleaned up with a this
     @subscriptions = new CompositeDisposable
 
     # Register command that toggles this view
-    @subscriptions.add atom.commands.add 'atom-workspace', 'atom-journal:toggle': => @toggle()
+    @subscriptions.add atom.commands.add 'atom-workspace',
+      'atom-journal:toggle': => @toggle()
 
   deactivate: ->
     @modalPanel.destroy()
@@ -28,13 +32,11 @@ module.exports = AtomJournal =
     @atomJournalView.destroy()
 
   serialize: ->
-    atomJournalViewState: @atomJournalView.serialize()
+    viewState: @atomJournalView.serialize()
 
-  onDateChange: (date)=>
-    @open(date, {})
-
-  open: (date, notebook)->
-    atom.workspace.open('journal-' + date.format('YYYY-MM-DD') + '.md', pending: true)
+  openEntry: (date, notebook)->
+    filename = 'journal-' + date.format('YYYY-MM-DD') + '.md'
+    atom.workspace.open filename, pending: true
 
   toggle: ->
     console.log 'AtomJournal was toggled!'
