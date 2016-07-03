@@ -58,5 +58,5 @@ module.exports = class AtomJournalView
     @onNotebookChange notebook if @onNotebookChange
 
   setOnNotebookChange: (cb)-> @onNotebookChange = cb
-  setOnDateChange: (cb) -> @calendar.setOnDateChange cb
-  setOverlay: (overlay)-> @view.setOverlay overlay
+  setOnDateChange: (cb)-> @calendar.setOnDateChange cb
+  setOverlay: (overlay)-> @calendar.setOverlay overlay

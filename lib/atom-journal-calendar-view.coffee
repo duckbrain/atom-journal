@@ -137,7 +137,11 @@ class AtomJournalView
       date.classList.toggle pre + 'future', today.diff(c, 'days') < 0
       if @overlay
         date.classList.toggle pre + 'disabled', !@overlay.isAllowed(c)
-        @overlay.isFilled(c).then((f)->date.classList.add pre + 'filled' if f)
+        ((date, overlay, c)->
+          overlay.isFilled(c).then((f)->
+            date.classList.add pre + 'filled' if f
+          )
+        )(date, @overlay, moment c)
       else
         date.classList.remove pre + 'disabled'
       date.classList.remove pre + 'selected'
@@ -149,4 +153,4 @@ class AtomJournalView
 
   setOverlay: (overlay)->
     @overlay = overlay
-    @setMonth(@getMonth)
+    @setMonth(@month)

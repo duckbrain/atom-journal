@@ -1,3 +1,4 @@
+fs = require 'fs'
 AtomJournalView = require './atom-journal-view'
 {CompositeDisposable} = require 'atom'
 
@@ -32,11 +33,11 @@ module.exports = AtomJournal =
     @view.setOverlay {
       notebook: notebook
       isAllowed: -> @notebook.isAllowed()
-      isFilled: =>
-        filename = @fullFilename @view.getDate(), notebook
+      isFilled: (date)=>
+        filename = @fullFilename date, notebook
         new Promise (resolve)->
-          fs.stat filename, (err)-> resolve !err
-    }
+          fs.stat filename, (err)-> resolve(!err)
+    
     @openEntry @view.getDate(), notebook
 
   parseNotebooks: (notebooks)->
