@@ -8,20 +8,20 @@
 
 }
 
-.atom-journal-calendar-container {
+.journal-calendar-container {
   float: left;
   margin-left: 10px;
 }
 
-.atom-journal-calendar {
+.journal-calendar {
   display: table;
 }
 
-.atom-journal-calendar-row {
+.journal-calendar-row {
   display: table-row;
 }
 
-.atom-journal-calendar-dow {
+.journal-calendar-dow {
   display: table-cell;
   cursor: default;
   text-align: center;
@@ -30,23 +30,37 @@
   min-width: 1.6em;
 }
 
-.atom-journal-calendar-date {
+.journal-calendar-date {
   display: table-cell;
   text-align: center;
   vertical-align: middle;
   cursor: pointer;
 }
 
-.atom-journal-calendar-day-different-month {
+.journal-calendar-day-different-month {
+  color: @text-color-subtle;
+  background-color: @background-color-highlight;
   opacity: .6;
 }
 
-.atom-journal-calendar-day-today {
+.journal-calendar-day-selected {
   background-color: @background-color-selected;
   color: @text-color-selected;
 }
 
-.atom-journal-calendar-controls {
+.journal-calendar-day-filled {
+  color: @text-color-info;
+}
+
+.journal-calendar-day-disabled {
+  color: @text-color-subtle;
+}
+
+.journal-calendar-day-today {
+  color: @text-color-success;
+}
+
+.journal-calendar-controls {
   display: flex;
   justify-content: space-between;
 }

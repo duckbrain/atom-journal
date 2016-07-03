@@ -1,7 +1,6 @@
 AtomJournalCalendarView = require './atom-journal-calendar-view'
 
-module.exports =
-class AtomJournalView
+module.exports = class AtomJournalView
   constructor: (state) ->
     calendarState = state && state.calendar || null
     @calendar = new AtomJournalCalendarView calendarState
@@ -11,8 +10,8 @@ class AtomJournalView
     @notebookList = document.createElement 'div'
     todayButton = document.createElement 'button'
 
-    @notebookList.classList.add 'padded', 'btn-group'
-    toolbar.classList.add 'padded', 'btn-group'
+    @notebookList.classList.add 'padded', 'btn-group', 'block'
+    toolbar.classList.add 'padded', 'btn-group', 'block'
     todayButton.classList.add 'btn'
     todayButton.textContent = 'Today'
 
@@ -23,29 +22,23 @@ class AtomJournalView
     toolbar.appendChild todayButton
     @base.appendChild @notebookList
 
-  onNotebookClick: (e)->
-    @setNotebook(e.target.dataset.notebook)
+  onNotebookClick: (e)-> @setNotebook e.target.dataset.notebook
 
   # Returns an object that can be retrieved when package is activated
-  serialize: ->
-    return calendar: @calendar.serialize()
+  serialize: -> calendar: @calendar.serialize()
 
   # Tear down any state and detach
-  destroy: ->
-    @base.remove()
+  destroy: -> @base.remove()
 
-  getElement: ->
-    @base
+  getElement: -> @base
 
-  getDate: ->
-    @calendar.getDate()
-
-  setDate: (date) ->
-    @calendar.setDate date
+  getDate: -> @calendar.getDate()
+  setDate: (date) -> @calendar.setDate date
 
   setNotebooks: (notebooks)->
     @notebookList.innerHTML = ''
     for name, notebook of notebooks
+      first = notebook if !first
       el = document.createElement 'button'
       el.classList.add 'btn'
       el.textContent = name
@@ -54,18 +47,16 @@ class AtomJournalView
       el.addEventListener 'click', (e)=>@onNotebookClick e
       @notebookList.appendChild el
     @notebooks = notebooks
+    @setNotebook(first) if first
 
-  getNotebook: ->
-    @notebook
-
+  getNotebook: -> @notebook
   setNotebook: (notebook)->
     notebook = @notebooks[notebook] if typeof notebook != 'object'
     @notebook.element.classList.remove 'selected' if @notebook
     notebook.element.classList.add 'selected'
     @notebook = notebook
-    @onNotebookChange(notebook) if @onNotebookChange
+    @onNotebookChange notebook if @onNotebookChange
 
-  setOnNotebookChange: (cb)->
-    @onNotebookChange = cb
-  setOnDateChange: (cb) ->
-    @calendar.setOnDateChange cb
+  setOnNotebookChange: (cb)-> @onNotebookChange = cb
+  setOnDateChange: (cb) -> @calendar.setOnDateChange cb
+  setOverlay: (overlay)-> @view.setOverlay overlay

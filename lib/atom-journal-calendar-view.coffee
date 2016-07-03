@@ -2,7 +2,7 @@ moment = require 'moment'
 
 module.exports =
 class AtomJournalView
-  constructor: (serializedState) ->
+  constructor: (serializedState)->
     # Create root element
     @element = document.createElement 'div'
     @element.classList.add 'atom-journal'
@@ -21,11 +21,11 @@ class AtomJournalView
     calendar = document.createElement 'div'
     dowsRow = document.createElement 'div'
 
-    calendarCol.classList.add 'atom-journal-calendar-container'
-    calendar.classList.add 'atom-journal-calendar'
-    dowsRow.classList.add 'atom-journal-calendar-row'
-    dowsRow.classList.add 'atom-journal-calendar-header'
-    controls.classList.add 'atom-journal-calendar-controls'
+    calendarCol.classList.add 'journal-calendar-container'
+    calendar.classList.add 'journal-calendar'
+    dowsRow.classList.add 'journal-calendar-row'
+    dowsRow.classList.add 'journal-calendar-header'
+    controls.classList.add 'journal-calendar-controls'
     previousMonthIcon.classList.add 'icon', 'icon-chevron-left'
     nextMonthIcon.classList.add 'icon', 'icon-chevron-right'
 
@@ -42,17 +42,17 @@ class AtomJournalView
 
     for i in [0..6]
       header = document.createElement 'span'
-      header.classList.add 'atom-journal-calendar-dow'
+      header.classList.add 'journal-calendar-dow'
       header.textContent = dows[i]
       dowsRow.appendChild header
     calendar.appendChild dowsRow
 
     for i in [0..5]
       row = document.createElement 'div'
-      row.classList.add 'atom-journal-calendar-row'
+      row.classList.add 'journal-calendar-row'
       for j in [0..6]
         date = document.createElement 'a'
-        date.classList.add 'atom-journal-calendar-date'
+        date.classList.add 'journal-calendar-date'
         date.textContent = i * 7 + j
         @dates[i * 7 + j] = date
         date.addEventListener 'click', @onDateClick
@@ -96,12 +96,12 @@ class AtomJournalView
   getDate: ->
     moment(@date)
 
-  setDate: (date) ->
+  setDate: (date)->
     if @date
       c = moment([@date.year(), @date.month()])
       c.day(0)
       index = @date.diff c, 'days'
-      @dates[index].classList.remove 'atom-journal-calendar-day-today'
+      @dates[index].classList.remove 'journal-calendar-day-selected'
 
     date = moment(date)
     @onDateChange(date) if @onDateChange
@@ -113,26 +113,40 @@ class AtomJournalView
     c = moment [date.year(), date.month()]
     c.day(0)
     index = date.diff c, 'days'
-    @dates[index].classList.add 'atom-journal-calendar-day-today'
+    @dates[index].classList.add 'journal-calendar-day-selected'
 
   getMonth: ->
     @month
 
-  setMonth: (dayInMonth) ->
+  setMonth: (dayInMonth)->
     c = moment dayInMonth
     c = moment [c.year(), c.month()]
     @month = moment c
     @monthDisplay.textContent = c.format 'MMMM YYYY'
     c.day(0)
+    today = moment().startOf 'day'
+    pre = 'journal-calendar-day-'
 
     for i in [0..41]
       date = @dates[i]
       date.textContent = c.format 'D'
       date.dataset.date = c
       out = c.month() != dayInMonth.month()
-      date.classList.toggle 'atom-journal-calendar-day-different-month', out
-      date.classList.remove 'atom-journal-calendar-day-today'
+      date.classList.toggle pre + 'different-month', out
+      date.classList.toggle pre + 'today', today.diff(c, 'days') == 0
+      date.classList.toggle pre + 'future', today.diff(c, 'days') < 0
+      if @overlay
+        date.classList.toggle pre + 'disabled', !@overlay.isAllowed(c)
+        @overlay.isFilled(c).then((f)->date.classList.add pre + 'filled' if f)
+      else
+        date.classList.remove pre + 'disabled'
+      date.classList.remove pre + 'selected'
+      date.classList.remove pre + 'filled'
       c.add 1, 'day'
 
-  setOnDateChange: (cb) ->
+  setOnDateChange: (cb)->
     @onDateChange = cb
+
+  setOverlay: (overlay)->
+    @overlay = overlay
+    @setMonth(@getMonth)

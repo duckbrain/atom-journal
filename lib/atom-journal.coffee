@@ -2,20 +2,21 @@ AtomJournalView = require './atom-journal-view'
 {CompositeDisposable} = require 'atom'
 
 module.exports = AtomJournal =
-  atomJournalView: null
+  view: null
   modalPanel: null
   subscriptions: null
 
   activate: (state) ->
-    @atomJournalView = new AtomJournalView state.viewState
-    @atomJournalView.setDate new Date
-    @atomJournalView.setOnDateChange (date)=> @openEntry date, {}
+    @view = new AtomJournalView state.viewState
+    @view.setDate new Date
+    @view.setOnDateChange (date)=> @onDateChange date
+    @view.setOnNotebookChange (notebook)=> @onNotebookChange notebook
     atom.config.observe "journal.notebooks", (notebooks)=>
       if !notebooks
         throw new Error "You must configure your notebooks in atom.cson"
-      @atomJournalView.setNotebooks notebooks
+      @view.setNotebooks @parseNotebooks notebooks
     @modalPanel = atom.workspace.addTopPanel(
-      item: @atomJournalView.getElement()
+      item: @view.getElement()
       visible: false
     )
 
@@ -26,16 +27,41 @@ module.exports = AtomJournal =
     @subscriptions.add atom.commands.add 'atom-workspace',
       'atom-journal:toggle': => @toggle()
 
+  onDateChange: (date)-> @openEntry date, @view.getNotebook()
+  onNotebookChange: (notebook)->
+    @view.setOverlay {
+      notebook: notebook
+      isAllowed: -> @notebook.isAllowed()
+      isFilled: =>
+        filename = @fullFilename @view.getDate(), notebook
+        new Promise (resolve)->
+          fs.stat filename, (err)-> resolve !err
+    }
+    @openEntry @view.getDate(), notebook
+
+  parseNotebooks: (notebooks)->
+    for name, n of notebooks
+      n.name = name if !n.name
+      n.folder = name if !n.folder
+      n.getFileTag = (date)-> date.format('YYYY-MM-DD')
+      n.isAllowed = (date)-> return true
+    notebooks
+
   deactivate: ->
     @modalPanel.destroy()
     @subscriptions.dispose()
-    @atomJournalView.destroy()
+    @view.destroy()
 
   serialize: ->
-    viewState: @atomJournalView.serialize()
+    viewState: @view.serialize()
+
+  fullFilename: (date, n)->
+    f = atom.config.get 'journal.baseDir'
+    f += '/' + n.folder + '/' + n.folder + '-' + n.getFileTag(date) + '.md'
 
   openEntry: (date, notebook)->
-    filename = 'journal-' + date.format('YYYY-MM-DD') + '.md'
+    return if !notebook || !date
+    filename = @fullFilename date, notebook
     atom.workspace.open filename, pending: true
 
   toggle: ->
