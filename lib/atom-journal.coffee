@@ -32,12 +32,12 @@ module.exports = AtomJournal =
   onNotebookChange: (notebook)->
     @view.setOverlay {
       notebook: notebook
-      isAllowed: -> @notebook.isAllowed()
+      isAllowed: (date)-> @notebook.isAllowed(date)
       isFilled: (date)=>
         filename = @fullFilename date, notebook
         new Promise (resolve)->
           fs.stat filename, (err)-> resolve(!err)
-    
+    }
     @openEntry @view.getDate(), notebook
 
   parseNotebooks: (notebooks)->
@@ -46,6 +46,9 @@ module.exports = AtomJournal =
       n.folder = name if !n.folder
       n.getFileTag = (date)-> date.format('YYYY-MM-DD')
       n.isAllowed = (date)-> return true
+      if n.weekOffset
+        n.getFileTag = (date)-> date.week() - @weekOffset
+        n.isAllowed = (date)-> date.week() >= @weekOffset
     notebooks
 
   deactivate: ->
