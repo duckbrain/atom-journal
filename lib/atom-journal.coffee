@@ -47,7 +47,10 @@ module.exports = AtomJournal =
       n.getFileTag = (date)-> date.format('YYYY-MM-DD')
       n.isAllowed = (date)-> return true
       if n.weekOffset
-        n.getFileTag = (date)-> date.week() - @weekOffset
+        n.getFileTag = (date)->
+          offset = date.week() - @weekOffset
+          offset = '0' + offset if offset < 10
+          offset
         n.isAllowed = (date)-> date.week() >= @weekOffset
     notebooks
 
