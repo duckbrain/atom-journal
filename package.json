@@ -7,7 +7,7 @@
   "activationCommands": {
     "atom-workspace": "atom-journal:toggle"
   },
-  "repository": "https://github.com/atom/atom-journal",
+  "repository": "https://github.com/duckbrain/atom-journal",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
