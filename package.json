@@ -1,7 +1,7 @@
 {
   "name": "atom-journal",
   "main": "./lib/atom-journal",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Open markdown files for notes and journal entries",
   "keywords": [],
   "activationCommands": {
