@@ -1,6 +1,8 @@
 fs = require 'fs'
 AtomJournalView = require './atom-journal-view'
 {CompositeDisposable} = require 'atom'
+Notebook = require './notebook'
+Handlebars = require 'handlebars'
 
 module.exports = AtomJournal =
   view: null
@@ -28,6 +30,7 @@ module.exports = AtomJournal =
     @subscriptions.add atom.commands.add 'atom-workspace',
       'atom-journal:toggle': => @toggle()
 
+
   onDateChange: (date)-> @openEntry date, @view.getNotebook()
   onNotebookChange: (notebook)->
     @view.setOverlay {
@@ -42,16 +45,7 @@ module.exports = AtomJournal =
 
   parseNotebooks: (notebooks)->
     for name, n of notebooks
-      n.name = name if !n.name
-      n.folder = name if !n.folder
-      n.getFileTag = (date)-> date.format('YYYY-MM-DD')
-      n.isAllowed = (date)-> return true
-      if n.weekOffset
-        n.getFileTag = (date)->
-          offset = date.week() - @weekOffset
-          offset = '0' + offset if offset < 10
-          offset
-        n.isAllowed = (date)-> date.week() >= @weekOffset
+      notebooks[name] = new Notebook n, name
     notebooks
 
   deactivate: ->
@@ -63,13 +57,32 @@ module.exports = AtomJournal =
     viewState: @view.serialize()
 
   fullFilename: (date, n)->
+    # TODO: Use node.js path library instead of string concatination
     f = atom.config.get 'journal.baseDir'
     f += '/' + n.folder + '/' + n.folder + '-' + n.getFileTag(date) + '.md'
+
+  fullTemplateFilename: (n)->
+    if n.template
+      atom.config.get('journal.baseDir') + '/' + n.folder + '/' + n.template
+    else null
 
   openEntry: (date, notebook)->
     return if !notebook || !date
     filename = @fullFilename date, notebook
-    atom.workspace.open filename, pending: true
+    p = atom.workspace.open(filename, pending: true)
+    return if !notebook.template
+    p.then((editor)->
+      editor.insertText "Reached editor open"
+      return editor if notebook.templateCompiled
+      editor.insertText "Reached before read"
+      fs.readFile(@fullTemplateFilename(notebook)).then (contents)->
+        editor.insertText "Reached file contents"
+        notebook.templateCompiled = Handlebars.compile contents
+        return editor
+    ).then((editor)->
+      editor.insertText "Reached insert"
+      editor.insertText notebook.templateCompiled date: date
+    ).catch (err)-> atom.notifications.addError err
 
   toggle: ->
     console.log 'AtomJournal was toggled!'
