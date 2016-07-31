@@ -8,7 +8,7 @@ module.exports =
         @getFileTag = @weekGetFileTag
         @isAllowed = @weekIsAllowed
       if c.template == true
-        c.template = '.' + c.name + '-template.md'
+        c.template = '.' + @name + '-template.md'
       @template = c.template if c.template
       if c.weekdays
         @weekdays = c.weekdays

@@ -1,8 +1,8 @@
-fs = require 'fs'
+fs = require "fs"
 AtomJournalView = require './atom-journal-view'
 {CompositeDisposable} = require 'atom'
 Notebook = require './notebook'
-Handlebars = require 'handlebars'
+Mustache = require 'mustache'
 
 module.exports = AtomJournal =
   view: null
@@ -69,19 +69,18 @@ module.exports = AtomJournal =
   openEntry: (date, notebook)->
     return if !notebook || !date
     filename = @fullFilename date, notebook
+    templatePath = @fullTemplateFilename notebook
     p = atom.workspace.open(filename, pending: true)
     return if !notebook.template
     p.then((editor)->
-      editor.insertText "Reached editor open"
-      return editor if notebook.templateCompiled
-      editor.insertText "Reached before read"
-      fs.readFile(@fullTemplateFilename(notebook)).then (contents)->
-        editor.insertText "Reached file contents"
-        notebook.templateCompiled = Handlebars.compile contents
-        return editor
-    ).then((editor)->
-      editor.insertText "Reached insert"
-      editor.insertText notebook.templateCompiled date: date
+      performInsert = ()->
+        editor.insertText Mustache.render(notebook.templateCompiled, date: date)
+      return performInsert() if notebook.templateCompiled
+      fs.readFile(templatePath, 'utf-8', (err, data)->
+        return if err
+        notebook.templateCompiled = data.toString()
+        return performInsert()
+      )
     ).catch (err)-> atom.notifications.addError err
 
   toggle: ->
