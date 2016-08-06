@@ -93,17 +93,38 @@ class AtomJournalView
   getElement: ->
     @element
 
+  getAllowedDay: (date)->
+    originalDate = date.clone()
+    if @overlay && !@overlay.isAllowed(date)
+      # Go backwards to begining of the week
+      for dow in [date.day()..0]
+        date.day(dow)
+        return date if @overlay.isAllowed(date)
+      date = originalDate
+      # Try the next 7 days
+      for count in [0..7]
+        date.add(1, 'day')
+        return date if @overlay.isAllowed(date)
+      throw new Error("Could not find an allowed day");
+    return date
+
   getDate: ->
     moment(@date)
 
   setDate: (date)->
+    date = moment(date)
+    # Don't allow a non-allowed date
+    try
+      date = @getAllowedDay(date)
+    catch
+      return
+
     if @date
       c = moment([@date.year(), @date.month()])
       c.day(0)
       index = @date.diff c, 'days'
       @dates[index].classList.remove 'journal-calendar-day-selected'
 
-    date = moment(date)
     @onDateChange(date) if @onDateChange
 
     if !@date || @date.month() != date.month() || @date.year() != date.year()
@@ -154,3 +175,4 @@ class AtomJournalView
   setOverlay: (overlay)->
     @overlay = overlay
     @setMonth(@month)
+    @setDate(@getDate())

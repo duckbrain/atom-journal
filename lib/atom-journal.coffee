@@ -11,13 +11,13 @@ module.exports = AtomJournal =
 
   activate: (state) ->
     @view = new AtomJournalView state.viewState
-    @view.setDate new Date
     @view.setOnDateChange (date)=> @onDateChange date
     @view.setOnNotebookChange (notebook)=> @onNotebookChange notebook
     atom.config.observe "journal.notebooks", (notebooks)=>
       if !notebooks
         throw new Error "You must configure your notebooks in atom.cson"
       @view.setNotebooks @parseNotebooks notebooks
+      @view.setDate new Date
     @modalPanel = atom.workspace.addTopPanel(
       item: @view.getElement()
       visible: false
