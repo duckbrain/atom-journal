@@ -20,6 +20,7 @@ module.exports =
     weekGetFileTag: (date)=>
       offset = date.week() - @weekOffset
       offset = '0' + offset if offset < 10
+      offset
     weekIsAllowed: (date)=> date.week() >= @weekOffset
 
     weekdayIsAllowed: (date)=>
