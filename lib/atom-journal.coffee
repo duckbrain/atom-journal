@@ -70,18 +70,27 @@ module.exports = AtomJournal =
     return if !notebook || !date
     filename = @fullFilename date, notebook
     templatePath = @fullTemplateFilename notebook
-    p = atom.workspace.open(filename, pending: true)
-    return if !notebook.template
-    p.then((editor)->
-      performInsert = ()->
-        editor.insertText Mustache.render(notebook.templateCompiled, date: date)
-      return performInsert() if notebook.templateCompiled
-      fs.readFile(templatePath, 'utf-8', (err, data)->
-        return if err
+
+    openTemplate = -> atom.workspace.open(filename, pending: true)
+
+    if notebook.template
+      save = (templateCode)->
+        templateResult = Mustache.render(notebook.templateCompiled, date: date)
+        fs.writeFile filename, templateResult, { flag: 'wx' }, (err)->
+          return openTemplate() if err
+          openTemplate().then (editor)->
+            editor.onDidDestroy((callback)->
+              if !editor.isModified() || editor.isEmpty()
+                fs.unlink(filename, ->)
+            )
+      if notebook.templateCompiled
+        return save(notebook.templateCompiled)
+      fs.readFile templatePath, 'utf-8', (err, data)->
+        return openTemplate() if err
         notebook.templateCompiled = data.toString()
-        return performInsert()
-      )
-    ).catch (err)-> atom.notifications.addError err
+        save(notebook.templateCompiled)
+    else
+      return openTemplate()
 
   toggle: ->
     console.log 'AtomJournal was toggled!'
