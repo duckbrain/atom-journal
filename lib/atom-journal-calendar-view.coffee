@@ -8,7 +8,7 @@ class AtomJournalView
     @element.classList.add 'atom-journal'
 
     @dates = []
-    dows = ['S', 'M', 'T', 'W', 'R', 'F', 'S']
+    dows = moment.weekdaysMin()
 
     # Create calendar element
     calendarCol = document.createElement 'div'
@@ -174,5 +174,5 @@ class AtomJournalView
 
   setOverlay: (overlay)->
     @overlay = overlay
-    @setMonth(@month)
+    @setMonth(@month) if @month
     @setDate(@getDate())

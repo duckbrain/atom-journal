@@ -9,17 +9,23 @@ module.exports = class AtomJournalView
     toolbar = document.createElement 'div'
     @notebookList = document.createElement 'div'
     todayButton = document.createElement 'button'
+    templateButton = document.createElement 'button'
 
     @notebookList.classList.add 'padded', 'btn-group', 'block'
     toolbar.classList.add 'padded', 'btn-group', 'block'
     todayButton.classList.add 'btn'
+    templateButton.classList.add 'btn'
     todayButton.textContent = 'Today'
+    templateButton.textContent = 'Template'
 
     todayButton.addEventListener 'click', ()=>@setDate new Date
+    # TODO: open template
+    templateButton.addEventListener 'click', ()=>{}
 
     @base.appendChild @calendar.getElement()
     @base.appendChild toolbar
     toolbar.appendChild todayButton
+    #toolbar.appendChild templateButton
     @base.appendChild @notebookList
 
   onNotebookClick: (e)-> @setNotebook e.target.dataset.notebook
