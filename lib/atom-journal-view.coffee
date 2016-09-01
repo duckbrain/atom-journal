@@ -6,6 +6,7 @@ module.exports = class AtomJournalView
     @calendar = new AtomJournalCalendarView calendarState
 
     @base = document.createElement 'div'
+    toolarea = document.createElement 'div'
     toolbar = document.createElement 'div'
     @notebookList = document.createElement 'div'
     todayButton = document.createElement 'button'
@@ -20,13 +21,14 @@ module.exports = class AtomJournalView
 
     todayButton.addEventListener 'click', ()=>@setDate new Date
     # TODO: open template
-    templateButton.addEventListener 'click', ()=>{}
+    templateButton.addEventListener 'click', ()=>@onTemplateClick @getNotebook()
 
-    @base.appendChild @calendar.getElement()
-    @base.appendChild toolbar
     toolbar.appendChild todayButton
-    #toolbar.appendChild templateButton
-    @base.appendChild @notebookList
+    toolbar.appendChild templateButton
+    toolarea.appendChild toolbar
+    toolarea.appendChild @notebookList
+    @base.appendChild @calendar.getElement()
+    @base.appendChild toolarea
 
   onNotebookClick: (e)-> @setNotebook e.target.dataset.notebook
 
@@ -65,4 +67,5 @@ module.exports = class AtomJournalView
 
   setOnNotebookChange: (cb)-> @onNotebookChange = cb
   setOnDateChange: (cb)-> @calendar.setOnDateChange cb
+  setOnTemplateClick: (cb)-> @onTemplateClick = cb
   setOverlay: (overlay)-> @calendar.setOverlay overlay

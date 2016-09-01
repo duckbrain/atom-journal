@@ -13,6 +13,7 @@ module.exports = AtomJournal =
     @view = new AtomJournalView state.viewState
     @view.setOnDateChange (date)=> @onDateChange date
     @view.setOnNotebookChange (notebook)=> @onNotebookChange notebook
+    @view.setOnTemplateClick (notebook)=> @onTemplateClick notebook
     atom.config.observe "journal.notebooks", (notebooks)=>
       if !notebooks
         throw new Error "You must configure your notebooks in atom.cson"
@@ -43,6 +44,10 @@ module.exports = AtomJournal =
     }
     @openEntry @view.getDate(), notebook
 
+  onTemplateClick: (notebook)->
+    templatePath = @fullTemplateFilename notebook
+    atom.workspace.open(templatePath)
+
   parseNotebooks: (notebooks)->
     for name, n of notebooks
       notebooks[name] = new Notebook n, name
@@ -69,13 +74,20 @@ module.exports = AtomJournal =
   openEntry: (date, notebook)->
     return if !notebook || !date
     filename = @fullFilename date, notebook
-    templatePath = @fullTemplateFilename notebook
-
     openTemplate = -> atom.workspace.open(filename, pending: true)
 
     if notebook.template
-      save = (templateCode)->
-        templateResult = Mustache.render(notebook.templateCompiled, date: date)
+      templatePath = @fullTemplateFilename notebook
+      fs.readFile templatePath, 'utf-8', (err, templateCode)->
+        return openTemplate() if err
+        f = 'dddd D MMMM YYYY'
+        data = date: date.format f
+        for d in [0..6]
+          date.weekday(d)
+          data['date' + date.format('ddd')] = date.format(f)
+        data['json'] = JSON.stringify data
+
+        templateResult = Mustache.render templateCode.toString(), data
         fs.writeFile filename, templateResult, { flag: 'wx' }, (err)->
           return openTemplate() if err
           openTemplate().then (editor)->
@@ -83,12 +95,6 @@ module.exports = AtomJournal =
               if !editor.isModified() || editor.isEmpty()
                 fs.unlink(filename, ->)
             )
-      if notebook.templateCompiled
-        return save(notebook.templateCompiled)
-      fs.readFile templatePath, 'utf-8', (err, data)->
-        return openTemplate() if err
-        notebook.templateCompiled = data.toString()
-        save(notebook.templateCompiled)
     else
       return openTemplate()
 
