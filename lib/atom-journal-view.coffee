@@ -14,14 +14,15 @@ module.exports = class AtomJournalView
 
     @notebookList.classList.add 'padded', 'btn-group', 'block'
     toolbar.classList.add 'padded', 'btn-group', 'block'
+    toolarea.classList.add 'atom-journal-toolarea'
     todayButton.classList.add 'btn'
     templateButton.classList.add 'btn'
     todayButton.textContent = 'Today'
     templateButton.textContent = 'Template'
 
     todayButton.addEventListener 'click', ()=>@setDate new Date
-    # TODO: open template
     templateButton.addEventListener 'click', ()=>@onTemplateClick @getNotebook()
+
 
     toolbar.appendChild todayButton
     toolbar.appendChild templateButton
