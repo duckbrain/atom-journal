@@ -1,37 +1,24 @@
 AtomJournalCalendarView = require './atom-journal-calendar-view'
+AtomJournalToolbarView = require './atom-journal-toolbar-view'
 
 module.exports = class AtomJournalView
   constructor: (state) ->
     calendarState = state && state.calendar || null
     @calendar = new AtomJournalCalendarView calendarState
+    @toolbar = new AtomJournalToolbarView
+    @notebookList = new AtomJournalToolbarView
 
     @base = document.createElement 'div'
     toolarea = document.createElement 'div'
-    toolbar = document.createElement 'div'
-    @notebookList = document.createElement 'div'
-    todayButton = document.createElement 'button'
-    templateButton = document.createElement 'button'
-
-    @notebookList.classList.add 'padded', 'btn-group', 'block'
-    toolbar.classList.add 'padded', 'btn-group', 'block'
     toolarea.classList.add 'atom-journal-toolarea'
-    todayButton.classList.add 'btn'
-    templateButton.classList.add 'btn'
-    todayButton.textContent = 'Today'
-    templateButton.textContent = 'Template'
 
-    todayButton.addEventListener 'click', ()=>@setDate new Date
-    templateButton.addEventListener 'click', ()=>@onTemplateClick @getNotebook()
+    @toolbar.addButton {name: 'Today'}, ()=>@setDate new Date
+    @toolbar.addButton {name: 'Template'}, ()=>@onTemplateClick @getNotebook()
 
-
-    toolbar.appendChild todayButton
-    toolbar.appendChild templateButton
-    toolarea.appendChild toolbar
-    toolarea.appendChild @notebookList
+    toolarea.appendChild @toolbar.getElement()
+    toolarea.appendChild @notebookList.getElement()
     @base.appendChild @calendar.getElement()
     @base.appendChild toolarea
-
-  onNotebookClick: (e)-> @setNotebook e.target.dataset.notebook
 
   # Returns an object that can be retrieved when package is activated
   serialize: -> calendar: @calendar.serialize()
@@ -45,24 +32,16 @@ module.exports = class AtomJournalView
   setDate: (date) -> @calendar.setDate date
 
   setNotebooks: (notebooks)->
-    @notebookList.innerHTML = ''
+    @notebookList.clear()
     for name, notebook of notebooks
       first = notebook if !first
-      el = document.createElement 'button'
-      el.classList.add 'btn'
-      el.textContent = name
-      el.dataset.notebook = name
-      notebook.element = el
-      el.addEventListener 'click', (e)=>@onNotebookClick e
-      @notebookList.appendChild el
+      @notebookList.addButton notebook, (e, notebook)=>@setNotebook notebook
     @notebooks = notebooks
     @setNotebook(first) if first
 
   getNotebook: -> @notebook
   setNotebook: (notebook)->
-    notebook = @notebooks[notebook] if typeof notebook != 'object'
-    @notebook.element.classList.remove 'selected' if @notebook
-    notebook.element.classList.add 'selected'
+    @notebookList.setSelected notebook
     @notebook = notebook
     @onNotebookChange notebook if @onNotebookChange
 

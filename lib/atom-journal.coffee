@@ -51,6 +51,7 @@ module.exports = AtomJournal =
   parseNotebooks: (notebooks)->
     for name, n of notebooks
       notebooks[name] = new Notebook n, name
+      notebooks[name].baseDir = ()-> atom.config.get 'journal.baseDir'
     notebooks
 
   deactivate: ->
@@ -73,30 +74,13 @@ module.exports = AtomJournal =
 
   openEntry: (date, notebook)->
     return if !notebook || !date
-    filename = @fullFilename date, notebook
-    openTemplate = -> atom.workspace.open(filename, pending: true)
 
-    if notebook.template
-      templatePath = @fullTemplateFilename notebook
-      fs.readFile templatePath, 'utf-8', (err, templateCode)->
-        return openTemplate() if err
-        f = 'dddd D MMMM YYYY'
-        data = date: date.format f
-        for d in [0..6]
-          date.weekday(d)
-          data['date' + date.format('ddd')] = date.format(f)
-        data['json'] = JSON.stringify data
-
-        templateResult = Mustache.render templateCode.toString(), data
-        fs.writeFile filename, templateResult, { flag: 'wx' }, (err)->
-          return openTemplate() if err
-          openTemplate().then (editor)->
-            editor.onDidDestroy((callback)->
-              if !editor.isModified() || editor.isEmpty()
-                fs.unlink(filename, ->)
-            )
-    else
-      return openTemplate()
+    notebook.getWorkingFile(date).then (desc)->
+      atom.workspace.open(desc.filename, pending: true).then (ed)->
+        ed.onDidSave((cb)->
+          debugger
+          desc.save().catch((err)=>throw err)
+        )
 
   toggle: ->
     console.log 'AtomJournal was toggled!'
